@@ -2,7 +2,9 @@
 # Compute Resources
 # ======================
 
-resource "oci_core_instance" "mpi_bastion" {
+
+
+resource "oci_core_instance" "mpi_head_node" {
   compartment_id      = var.compartment_id
   availability_domain = data.oci_identity_availability_domain.ad.name
   shape               = "VM.Standard.A2.Flex"
@@ -25,22 +27,14 @@ resource "oci_core_instance" "mpi_bastion" {
   }
 
   metadata = {
-     ssh_authorized_keys = var.ssh_public_key
-    user_data = base64encode(<<-EOF
-      #!/bin/bash
-      set -e
-      # Mount NFS with retries
-      mkdir -p /mnt/mpi_shared
-      for i in {1..12}; do
-        if mount -t nfs ${oci_file_storage_mount_target.mpi_mount_target.ip_address}:/mpi_shared /mnt/mpi_shared; then
-          break
-        fi
-        sleep 10
-      done
-      echo "${oci_file_storage_mount_target.mpi_mount_target.ip_address}:/mpi_shared /mnt/mpi_shared nfs rw,bg,hard 0 0" >> /etc/fstab
-    EOF
-    )
-  }
+		ssh_authorized_keys = var.ssh_public_key
+		user_data = base64encode(templatefile("${path.module}/script/user-data.sh", {
+		  mount_ip    = oci_file_storage_mount_target.mpi_mount_target.ip_address
+		  role = "head"
+		
+		}))
+		
+	  }
 }
 
 resource "oci_core_instance_configuration" "mpi_worker_config" {
@@ -94,6 +88,7 @@ resource "oci_core_instance_configuration" "mpi_worker_config" {
 		ssh_authorized_keys = var.ssh_public_key
 		user_data = base64encode(templatefile("${path.module}/script/user-data.sh", {
 		  mount_ip    = oci_file_storage_mount_target.mpi_mount_target.ip_address
+		  role = "worker"
 		
 		}))
 		
