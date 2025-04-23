@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Download and execute the actual setup script
-wget -O /tmp/hpc-setup.sh  https://objectstorage.eu-frankfurt-1.oraclecloud.com/p/u1oXXlGtaBJ8xxnMOZ_QLuXWDdv1UnBGYak1gq4DYjZuKFw5YO-_rkr0-xukmsFG/n/fr9qm01oq44x/b/hpc/o/a2-hpc-setup.sh
+wget -O /tmp/hpc-setup.sh  https://objectstorage.eu-frankfurt-1.oraclecloud.com/p/sOGfgE_Kl6JYLM1Ks84kEjWcZsHkU-n3L1wHUn4sxdmMMmeOBeRgL19wzvkUJo8j/n/fr9qm01oq44x/b/hpc/o/a2-hpc-setup.sh
 chmod +x /tmp/hpc-setup.sh
 sed -i 's/\r$//' /tmp/hpc-setup.sh
 

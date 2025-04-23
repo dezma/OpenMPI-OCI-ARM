@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 MOUNT_IP=$1
-ROLE=$2   # "head" or "worker"
+ROLE=$2   # First argument indicates role: head or 
 LOG_FILE="/var/log/mpi-setup-$(date +%s).log"
 exec > "$LOG_FILE" 2>&1
 
@@ -11,13 +11,18 @@ if [[ -z "$MOUNT_IP" || -z "$ROLE" ]]; then
     exit 1
 fi
 
+# Initialize
 CORES=$(nproc)
+
+
 echo "=== OCI A2 MPI SETUP ($ROLE NODE) ==="
 
-# --- SYSTEM OPTIMIZATION ---
+# System Tuning
 echo "=== SYSTEM OPTIMIZATION ==="
 {
+    # Network Tuning
     cat > /etc/sysctl.d/99-mpi.conf <<'EOT'
+# TCP Tuning
 net.ipv4.tcp_rmem=4096 87380 16777216
 net.ipv4.tcp_wmem=4096 65536 16777216
 net.core.rmem_max=16777216
@@ -27,6 +32,8 @@ net.ipv4.tcp_sack=1
 net.core.netdev_max_backlog=30000
 net.core.somaxconn=32768
 net.ipv4.tcp_low_latency=1
+
+# Virtual NIC Optimization
 net.core.netdev_budget=6000
 net.ipv4.tcp_retries2=8
 EOT
@@ -40,26 +47,31 @@ EOT
 
     DEFAULT_ROUTE=$(ip -o -4 route show default)
     SUBNET=$(echo "$DEFAULT_ROUTE" | awk '{print $3}' | awk -F'.' '{print $1"."$2"."$3".0/24"}')
-    [[ "$SUBNET" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+$ ]] || SUBNET="10.0.0.0/16"
 
-    iptables -F
-    iptables -A INPUT -s "$SUBNET" -j ACCEPT
-    iptables -A OUTPUT -d "$SUBNET" -j ACCEPT
+    if ! [[ $SUBNET =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+$ ]]; then
+        echo "ERROR: Invalid subnet detected: $SUBNET"
+        echo "Using fallback: 10.0.0.0/16"
+        SUBNET="10.0.0.0/16"
+    fi
+
+    sudo iptables -F
+    sudo iptables -A INPUT -s "$SUBNET" -j ACCEPT
+    sudo iptables -A OUTPUT -d "$SUBNET" -j ACCEPT
 }
 
-# --- PACKAGE INSTALLATION ---
 echo "=== INSTALLING PACKAGES ==="
 {
     apt-get update -y
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
-        gcc-13 g++-13 libstdc++-13-dev libevent-dev libhwloc-dev hwloc-nox \
-        libnuma-dev ethtool net-tools nfs-common wget cmake pkg-config \
+        gcc-13 g++-13 libstdc++-13-dev \
+        libevent-dev libhwloc-dev hwloc-nox \
+        libnuma-dev ethtool net-tools \
+        nfs-common wget cmake pkg-config \
         git automake libtool unzip
     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
 }
 
-# --- NFS MOUNT ---
 echo "=== CONFIGURING NFS ==="
 {
     mkdir -p /mnt/mpi_shared
@@ -67,6 +79,7 @@ echo "=== CONFIGURING NFS ==="
 
     MOUNT_SUCCESS=0
     for version in 4.2 4.1 3; do
+        echo "Trying NFSv${version}..."
         if mount -t nfs -o "vers=${version},rsize=65536,wsize=65536,hard,timeo=600,retrans=2" "${MOUNT_IP}:/mpi_shared" /mnt/mpi_shared; then
             echo "${MOUNT_IP}:/mpi_shared /mnt/mpi_shared nfs vers=${version},rsize=65536,wsize=65536,hard,timeo=600,retrans=2 0 0" >> /etc/fstab
             MOUNT_SUCCESS=1
@@ -82,21 +95,32 @@ echo "=== CONFIGURING NFS ==="
     fi
     mount | grep mpi_shared
 
-    # Update shared hostfile
-    echo "$(hostname -I | awk '{print $1}') slots=$CORES" >> /mnt/mpi_shared/hostfile
+    if [[ "$ROLE" == "head" ]]; then
+        echo "$(hostname -I | awk '{print $1}') slots=$CORES" >> /mnt/mpi_shared/hostfile
+    fi
 }
 
-# --- BUILD OPENMPI ---
+if [[ "$ROLE" == "head" ]]; then
+    echo "=== HEAD NODE SETUP ==="
+    echo "Head node: ${HOSTNAME} is ready."
+else
+    echo "=== WORKER NODE SETUP ==="
+    echo "$(hostname -I | awk '{print $1}') slots=$CORES" >> /mnt/mpi_shared/hostfile
+fi
+
 echo "=== BUILDING OPENMPI ==="
 {
-    cd /opt || mkdir -p /opt && cd /opt
+    cd /opt || mkdir -p /opt
     wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.5.tar.gz
     tar xzf openmpi-4.1.5.tar.gz
     cd openmpi-4.1.5
 
     ./configure --prefix=/usr/local \
-        --with-pmix=internal --with-hwloc=internal \
-        --enable-mpi1-compatibility --disable-dlopen --without-verbs \
+        --with-pmix=internal \
+        --with-hwloc=internal \
+        --enable-mpi1-compatibility \
+        --disable-dlopen \
+        --without-verbs \
         CFLAGS="-O3 -mcpu=ampere1 -march=armv8.6-a -funroll-loops -ffast-math" \
         CXXFLAGS="-O3 -mcpu=ampere1 -march=armv8.6-a -funroll-loops -ffast-math"
 
@@ -105,9 +129,11 @@ echo "=== BUILDING OPENMPI ==="
     ldconfig
 }
 
-# --- SSH SETUP ---
 echo "=== CONFIGURING PASSWORDLESS SSH ==="
 {
+    [ -f /home/ubuntu/.ssh/authorized_keys ] && \
+        sudo cp /home/ubuntu/.ssh/authorized_keys /home/ubuntu/.ssh/authorized_keys.bak
+
     sudo -u ubuntu mkdir -p /home/ubuntu/.ssh
     sudo chmod 700 /home/ubuntu/.ssh
 
@@ -115,16 +141,18 @@ echo "=== CONFIGURING PASSWORDLESS SSH ==="
         sudo -u ubuntu ssh-keygen -t rsa -N "" -f /home/ubuntu/.ssh/id_rsa
     fi
 
-    mkdir -p /mnt/mpi_shared/ssh_keys
-    cp /home/ubuntu/.ssh/id_rsa.pub /mnt/mpi_shared/ssh_keys/$(hostname).pub
+    sudo mkdir -p /mnt/mpi_shared/ssh_keys
+    sudo cp /home/ubuntu/.ssh/id_rsa.pub /mnt/mpi_shared/ssh_keys/$(hostname).pub
 
     if [[ "$ROLE" == "head" ]]; then
-        echo "Waiting for worker public keys..."
+        echo "Waiting for all worker nodes' SSH keys..."
+
         EXPECTED_NODES=$(grep -vc ^# /mnt/mpi_shared/hostfile)
 
         end=$((SECONDS+120))
         while [ $SECONDS -lt $end ]; do
             NUM_KEYS=$(ls /mnt/mpi_shared/ssh_keys/*.pub 2>/dev/null | wc -l)
+            echo "Found $NUM_KEYS of $EXPECTED_NODES keys..."
             if [ "$NUM_KEYS" -ge "$EXPECTED_NODES" ]; then
                 break
             fi
@@ -136,44 +164,35 @@ echo "=== CONFIGURING PASSWORDLESS SSH ==="
             exit 1
         fi
 
-        echo "Merging keys..."
+        echo "All keys are present. Generating merged authorized_keys..."
+
         {
             [ -f /home/ubuntu/.ssh/authorized_keys.bak ] && cat /home/ubuntu/.ssh/authorized_keys.bak
             awk '!seen[$0]++' /mnt/mpi_shared/ssh_keys/*.pub
-        } > /home/ubuntu/.ssh/authorized_keys
+        } > /mnt/mpi_shared/ssh_keys/authorized_keys_all
 
+        cp /mnt/mpi_shared/ssh_keys/authorized_keys_all /home/ubuntu/.ssh/authorized_keys
         chown ubuntu:ubuntu /home/ubuntu/.ssh/authorized_keys
         chmod 600 /home/ubuntu/.ssh/authorized_keys
-
-        cp /home/ubuntu/.ssh/authorized_keys /mnt/mpi_shared/ssh_keys/authorized_keys_all
-        chmod 644 /mnt/mpi_shared/ssh_keys/authorized_keys_all
     else
-        echo "Waiting for shared authorized_keys from head node..."
-        end=$((SECONDS+120))
-        while [ $SECONDS -lt $end ]; do
-            if [ -f /mnt/mpi_shared/ssh_keys/authorized_keys_all ]; then
-                cp /mnt/mpi_shared/ssh_keys/authorized_keys_all /home/ubuntu/.ssh/authorized_keys
-                chown ubuntu:ubuntu /home/ubuntu/.ssh/authorized_keys
-                chmod 600 /home/ubuntu/.ssh/authorized_keys
-                echo "Installed shared authorized_keys"
-                break
-            fi
+        while [ ! -f /mnt/mpi_shared/ssh_keys/authorized_keys_all ]; do
+            echo "Waiting for head node to publish authorized_keys_all..."
             sleep 5
         done
 
-        if [ ! -f /home/ubuntu/.ssh/authorized_keys ]; then
-            echo "ERROR: Failed to fetch authorized_keys from head node"
-            exit 1
-        fi
+        cp /mnt/mpi_shared/ssh_keys/authorized_keys_all /home/ubuntu/.ssh/authorized_keys
+        chown ubuntu:ubuntu /home/ubuntu/.ssh/authorized_keys
+        chmod 600 /home/ubuntu/.ssh/authorized_keys
     fi
 }
 
-# --- FINAL CONFIGURATION ---
 echo "=== FINAL CONFIGURATION ==="
 {
     cat > /etc/profile.d/mpi.sh <<'EOT'
 export PATH="/usr/local/bin:$PATH"
 export LD_LIBRARY_PATH="/usr/local/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+
+# OpenMPI Tuning for Virtio
 export OMPI_MCA_pml=ob1
 export OMPI_MCA_btl="self,tcp,vader"
 export OMPI_MCA_btl_tcp_if_exclude="lo,docker0"

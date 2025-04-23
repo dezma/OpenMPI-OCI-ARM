@@ -108,6 +108,11 @@ resource "oci_core_security_list" "public_sl" {
       max = 22
     }
   }
+  
+  ingress_security_rules {
+    protocol = "all" # TCP
+    source   = "10.0.2.0/24"
+  }
 
   egress_security_rules {
     protocol    = "all"
@@ -122,7 +127,7 @@ resource "oci_core_security_list" "private_sl" {
 
   ingress_security_rules {
     protocol = "all"
-    source   = "10.0.1.0/24" # Bastion
+    source   = "10.0.1.0/24" # Head node
   }
   ingress_security_rules {
     protocol = "all"
