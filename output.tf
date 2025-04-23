@@ -1,12 +1,12 @@
 # ======================
 # Outputs
 # ======================
-output "bastion_public_ip" {
-  value = oci_core_instance.mpi_bastion.public_ip
+output "mpi_head_node_public_ip" {
+  value = oci_core_instance.mpi_head_node.public_ip
 }
 
 output "ssh_command" {
-  value = "ssh -o ProxyCommand='ssh -W %h:%p -i ope-mpi ubuntu@${oci_core_instance.mpi_bastion.public_ip}' -i ope-mpi ubuntu@<worker_private_ip>"
+  value = "ssh -o ProxyCommand='ssh -W %h:%p -i ope-mpi ubuntu@${oci_core_instance.mpi_head_node.public_ip}' -i ope-mpi ubuntu@<worker_private_ip>"
 }
 
 
@@ -15,7 +15,7 @@ output "ssh_command" {
 output "cluster_access" {
   value = <<-EOT
     # Access cluster via:
-    ssh -i ~/.ssh/your_key ubuntu@${oci_core_instance.mpi_bastion.public_ip}
+    ssh -i ~/.ssh/your_key ubuntu@${oci_core_instance.mpi_head_node.public_ip}
 
     # Verify hostfile:
     cat /mnt/mpi_shared/hostfile
@@ -25,5 +25,3 @@ output "cluster_access" {
       ./your_app
   EOT
 }
-
-

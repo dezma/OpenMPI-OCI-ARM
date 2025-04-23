@@ -8,17 +8,17 @@ resource "oci_core_instance" "mpi_head_node" {
   compartment_id      = var.compartment_id
   availability_domain = data.oci_identity_availability_domain.ad.name
   shape               = "VM.Standard.A2.Flex"
-  display_name        = "mpi-bastion"
+  display_name        = "mpi-head-node"
 
   shape_config {
-    ocpus         = 2
-    memory_in_gbs = 16
+    ocpus         = var.instance_ocpus
+    memory_in_gbs = var.instance_ocpus * 8
   }
 
   create_vnic_details {
     subnet_id        = oci_core_subnet.public_subnet.id
     assign_public_ip = true
-    display_name     = "mpi-bastion-vnic"
+    display_name     = "mpi-head-vnic"
   }
 
   source_details {
@@ -34,7 +34,7 @@ resource "oci_core_instance" "mpi_head_node" {
 		
 		}))
 		
-	  }
+   }
 }
 
 resource "oci_core_instance_configuration" "mpi_worker_config" {
@@ -76,7 +76,7 @@ resource "oci_core_instance_configuration" "mpi_worker_config" {
       
       launch_options {
         network_type = "PARAVIRTUALIZED"
-        is_pv_encryption_in_transit_enabled = true
+       
       }
 
       source_details {

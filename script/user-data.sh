@@ -8,4 +8,4 @@ sed -i 's/\r$//' /tmp/hpc-setup.sh
 
 
 # Execute with the mount IP from Terraform
-/tmp/hpc-setup.sh ${mount_ip} $(role)
+/tmp/hpc-setup.sh ${mount_ip} ${role}
