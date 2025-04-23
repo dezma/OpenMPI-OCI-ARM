@@ -6,7 +6,7 @@ output "mpi_head_node_public_ip" {
 }
 
 output "ssh_command" {
-  value = "ssh -o ProxyCommand='ssh -W %h:%p -i ope-mpi ubuntu@${oci_core_instance.mpi_head_node.public_ip}' -i ope-mpi ubuntu@<worker_private_ip>"
+  value = "ssh -o ProxyCommand='ssh -W %h:%p -i <private-key> ubuntu@${oci_core_instance.mpi_head_node.public_ip}' -i <private-key> ubuntu@<worker_private_ip>"
 }
 
 
