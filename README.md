@@ -4,7 +4,7 @@ This project deploys a scalable OpenMPI cluster on Oracle Cloud Infrastructure (
 
 ---
 
-## 📐 Architecture Diagram
+## Architecture Diagram
 
 ```
                     +-----------------------+
@@ -29,7 +29,7 @@ This project deploys a scalable OpenMPI cluster on Oracle Cloud Infrastructure (
 
 ---
 
-## 🚀 Deployment Steps
+## Deployment Steps
 
 ### Prerequisites
 - OCI account with appropriate limits for Ampere A1 instances.
@@ -61,7 +61,7 @@ $ tail -f /mnt/mpi_shared/hostfile
 
 ---
 
-## 🔧 Post-Deployment
+## Post-Deployment
 
 After provisioning:
 
@@ -71,28 +71,18 @@ After provisioning:
 
 ---
 
-## 📂 Directory Structure
-```
-OpenMPI-OCI-ARM/
-├── terraform/               # Infrastructure code
-├── scripts/                 # MPI + GROMACS bootstrap scripts
-├── README.md                # This file
-```
-
----
-
-## 🧪 Example MPI Job
+## Example MPI Job
 ```bash
 mpirun -np 16 --hostfile /mnt/mpi_shared/hostfile osu_latency
 ```
 
 ---
 
-## 📞 Support / Contributions
+## Support / Contributions
 Feel free to open an issue or pull request on GitHub. Suggestions, bug fixes, and optimizations are welcome!
 
 ---
 
-## 🛡️ License
+## License
 MIT License. See `LICENSE` file.
 
