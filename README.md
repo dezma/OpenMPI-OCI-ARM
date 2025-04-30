@@ -34,10 +34,10 @@ ssh_private_key_path = "~/.ssh/id_rsa"
 You can override these defaults as needed. Add these to your terraform.tfvars:
 
 ```hcl
-region = "us-ashburn-1"         # Default region
+region = "eu-frankfurt-1"          # Default region
 cluster_name = "ampere-a2-cluster" # Name prefix for all resources
-node_count = 4                  # Number of compute nodes
-ad = 1                          # Availability domain number
+node_count = 4                     # Number of compute nodes
+ad = 1                             # Availability domain number
 ```
 
 
@@ -54,9 +54,9 @@ The configuration creates:
 
 ### Compute:
 
-- 1 Bastion host (VM.Standard.A1.Flex) in public subnet
+- 1 Compute Head Node host (VM.Standard.A2.Flex) in public subnet
 
-- N Compute nodes (VM.Standard.A2.Flex) in private subnet
+- N Compute Worker nodes (VM.Standard.A2.Flex) in private subnet
 
 - Cluster placement group for optimal node placement
 
