@@ -12,7 +12,7 @@ variable "ssh_public_key" {
 }
 
 variable "region" {
-  default = "us-phoenix-1"
+  default = "eu-frankfurt-1"
 }
 
 variable "cluster_size" {
