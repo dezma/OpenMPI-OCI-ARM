@@ -4,7 +4,7 @@ This project deploys a scalable OpenMPI cluster on Oracle Cloud Infrastructure (
 
 ---
 
-## Architecture Diagram
+## 📐 Architecture Diagram
 
 ```
                     +-----------------------+
@@ -23,18 +23,19 @@ This project deploys a scalable OpenMPI cluster on Oracle Cloud Infrastructure (
      +--------------+                   +---------------+
 ```
 
-- **Head Node (Bastion)**: Manages cluster, runs jobs, provides NFS share.
-- **Workers**: Mount NFS, install OpenMPI, and register dynamically.
-- **All nodes** use internal networking for MPI communication.
+* **Head Node (Bastion)**: Manages cluster, runs jobs, provides NFS share.
+* **Workers**: Mount NFS, install OpenMPI, and register dynamically.
+* **All nodes** use internal networking for MPI communication.
 
 ---
 
-## Deployment Steps
+## 🚀 Deployment Steps
 
 ### Prerequisites
-- OCI account with appropriate limits for Ampere A1 instances.
-- `terraform` CLI installed locally.
-- SSH key pair for cluster access.
+
+* OCI account with appropriate limits for Ampere A1 instances.
+* `terraform` CLI installed locally.
+* SSH key pair for cluster access.
 
 ### Step-by-step Guide
 
@@ -61,29 +62,35 @@ $ tail -f /mnt/mpi_shared/hostfile
 
 ---
 
-## Post-Deployment
+## 🔧 Post-Deployment
 
 After provisioning:
 
-- `mpirun` will work from the head node using the dynamically built hostfile at `/mnt/mpi_shared/hostfile`.
-- GROMACS or other MPI applications can be installed using the provided `gromacs-install.sh` script.
-- All nodes use passwordless SSH and shared `/mnt/mpi_shared`.
+* `mpirun` will work from the head node using the dynamically built hostfile at `/mnt/mpi_shared/hostfile`.
+* GROMACS or other MPI applications can be installed using the provided `gromacs-install.sh` script.
+* All nodes use passwordless SSH and shared `/mnt/mpi_shared`.
 
 ---
 
-## Example MPI Job
+## 📂 Directory Structure
+
+```
+OpenMPI-OCI-ARM/
+├── terraform/               # Infrastructure code
+├── scripts/                 # MPI + GROMACS bootstrap scripts
+├── README.md                # This file
+```
+
+---
+
+## 🧪 Example MPI Job
+
 ```bash
 mpirun -np 16 --hostfile /mnt/mpi_shared/hostfile osu_latency
 ```
 
 ---
 
-## Support / Contributions
-Feel free to open an issue or pull request on GitHub. Suggestions, bug fixes, and optimizations are welcome!
+## 🛡️ License
 
----
-
-## License
 MIT License. See `LICENSE` file.
-
-# OCI-HPC-ARM-EXAMPLES
