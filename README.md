@@ -65,8 +65,9 @@ variable "instance_ocpus" {
 }
 
 # 6. Initialize and apply Terraform
-$ terraform init
-$ terraform apply -auto-approve
+$ terraform init 
+$ terraform plan -var-file="terraform.tfvars"
+$ terraform apply -var-file="terraform.tfvars" -auto-approve
 
 # 7. SSH into the head node
 $ ssh -i <your_private_key> ubuntu@<public_ip_of_head>
