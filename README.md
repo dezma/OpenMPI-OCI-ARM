@@ -84,6 +84,7 @@ After provisioning:
 * `mpirun` will work from the head node using the dynamically built hostfile at `/mnt/mpi_shared/hostfile`.
 * GROMACS or other MPI applications can be installed using the provided `gromacs-install.sh` script.
 * All nodes use passwordless SSH and shared `/mnt/mpi_shared`.
+* Sample workloads to run on the cluster can be found in here ->https://github.com/dezma/OCI-HPC-ARM-EXAMPLES.
 
 ---
 
