@@ -79,16 +79,6 @@ After provisioning:
 
 ---
 
-## 📂 Directory Structure
-
-```
-OpenMPI-OCI-ARM/
-├── terraform/               # Infrastructure code
-├── scripts/                 # MPI + GROMACS bootstrap scripts
-├── README.md                # This file
-```
-
----
 
 ## 🧪 Example MPI Job
 
