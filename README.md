@@ -19,7 +19,7 @@ This project deploys a scalable OpenMPI cluster on Oracle Cloud Infrastructure (
             |                                     |
      +------+-------+                    +--------+------+
      |   Worker 1    |    ...            |   Worker N     |
-     |  Ampere A1    |                   |  Ampere A1     |
+     |  Ampere A2    |                   |  Ampere A2     |
      +--------------+                   +---------------+
 ```
 
@@ -33,7 +33,7 @@ This project deploys a scalable OpenMPI cluster on Oracle Cloud Infrastructure (
 
 ### Prerequisites
 
-* OCI account with appropriate limits for Ampere A1 instances.
+* OCI account with appropriate limits for Ampere A2 instances.
 * `terraform` CLI installed locally.
 * SSH key pair for cluster access.
 
@@ -56,14 +56,22 @@ $ ssh-keygen -b 2048 -t rsa -f <sshkeyname>
 ssh_private_key_path = "~/.ssh/id_rsa"
 ssh_public_key  = "ssh-rsa AAAAB3NzaC1yc2E....."
 
-# 5. Initialize and apply Terraform
+# 5. Configure Variables
+variable "cluster_size" {
+  default = 4 # Size of the cluster (excluding the head node)
+}
+variable "instance_ocpus" {
+  default = 8  # Ampere A2.Flex cores per node
+}
+
+# 6. Initialize and apply Terraform
 $ terraform init
 $ terraform apply -auto-approve
 
-# 6. SSH into the head node
+# 7. SSH into the head node
 $ ssh -i <your_private_key> ubuntu@<public_ip_of_head>
 
-# 7. Monitor worker provisioning via NFS shared logs
+# 8. Monitor worker provisioning via NFS shared logs
 $ tail -f /mnt/mpi_shared/hostfile
 ```
 
