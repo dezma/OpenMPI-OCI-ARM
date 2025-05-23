@@ -97,7 +97,3 @@ mpirun -np 16 --hostfile /mnt/mpi_shared/hostfile osu_latency
 ```
 
 ---
-
-## 🛡️ License
-
-MIT License. See `LICENSE` file.
