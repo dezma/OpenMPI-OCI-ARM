@@ -49,14 +49,21 @@ $ cp terraform.tfvars.example terraform.tfvars
 $ nano terraform.tfvars
 # (Set values like compartment_ocid, availability_domain, etc.)
 
-# 3. Initialize and apply Terraform
+# 3. Configure an ssh key pair
+$ ssh-keygen -b 2048 -t rsa -f <<sshkeyname>>
+
+# 4. Add the keys to the terraform.tfvars file
+ssh_private_key_path = "~/.ssh/id_rsa"
+ssh_public_key  = "ssh-rsa AAAAB3NzaC1yc2E....."
+
+# 5. Initialize and apply Terraform
 $ terraform init
 $ terraform apply -auto-approve
 
-# 4. SSH into the head node
+# 6. SSH into the head node
 $ ssh -i <your_private_key> ubuntu@<public_ip_of_head>
 
-# 5. Monitor worker provisioning via NFS shared logs
+# 7. Monitor worker provisioning via NFS shared logs
 $ tail -f /mnt/mpi_shared/hostfile
 ```
 
