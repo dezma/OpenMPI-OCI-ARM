@@ -50,7 +50,7 @@ $ nano terraform.tfvars
 # (Set values like compartment_ocid, availability_domain, etc.)
 
 # 3. Configure an ssh key pair
-$ ssh-keygen -b 2048 -t rsa -f <<sshkeyname>>
+$ ssh-keygen -b 2048 -t rsa -f <sshkeyname>
 
 # 4. Add the keys to the terraform.tfvars file
 ssh_private_key_path = "~/.ssh/id_rsa"
