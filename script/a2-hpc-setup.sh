@@ -127,9 +127,28 @@ while [ ! -f /mnt/mpi_shared/authorized_keys_all ] && [ $SECONDS -lt $end ]; do
 done
 [ -f /mnt/mpi_shared/authorized_keys_all ] || { echo "ERROR: Missing authorized_keys_all"; exit 1; }
 
+# === BACKUP AND RESTORE SSH KEYS ===
+echo "=== BACKUP AND RESTORE SSH KEYS ==="
+
+# Backup the original authorized_keys
+if [ -f /home/ubuntu/.ssh/authorized_keys ]; then
+    cp /home/ubuntu/.ssh/authorized_keys /home/ubuntu/.ssh/authorized_keys.bak
+fi
+
+# Replace with MPI cluster keys
 cp /mnt/mpi_shared/authorized_keys_all /home/ubuntu/.ssh/authorized_keys
-chown ubuntu:ubuntu /home/ubuntu/.ssh/authorized_keys
-chmod 600 /home/ubuntu/.ssh/authorized_keys
+
+# Restore original authorized_keys (append)
+if [ -f /home/ubuntu/.ssh/authorized_keys.bak ]; then
+    cat /home/ubuntu/.ssh/authorized_keys.bak >> /home/ubuntu/.ssh/authorized_keys
+fi
+
+# Remove duplicate lines
+sort -u /home/ubuntu/.ssh/authorized_keys -o /home/ubuntu/.ssh/authorized_keys
+
+# Permissions
+sudo chown ubuntu:ubuntu /home/ubuntu/.ssh/authorized_keys
+sudo chmod 600 /home/ubuntu/.ssh/authorized_keys
 
 # SSH auto-accept for unknown hosts
 echo "=== CONFIGURING SSH AUTO-ACCEPT ==="
