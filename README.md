@@ -44,36 +44,52 @@ This project deploys a scalable OpenMPI cluster on Oracle Cloud Infrastructure (
 $ git clone https://github.com/dezmaIT/OpenMPI-OCI-ARM.git
 $ cd OpenMPI-OCI-ARM
 
+
 # 2. Customize variables
 $ cp terraform.tfvars.example terraform.tfvars
 $ nano terraform.tfvars
 # (Set values like compartment_ocid, availability_domain, etc.)
 
+
 # 3. Configure an ssh key pair
 $ ssh-keygen -b 2048 -t rsa -f <sshkeyname>
+
 
 # 4. Add the keys to the terraform.tfvars file
 ssh_private_key_path = "~/.ssh/id_rsa"
 ssh_public_key  = "ssh-rsa AAAAB3NzaC1yc2E....."
 
+
 # 5. Configure Variables
 variable "cluster_size" {
+
   default = 4 # Size of the cluster (excluding the head node)
+ 
 }
 variable "instance_ocpus" {
+
   default = 8  # Ampere A2.Flex cores per node
+  
 }
+
 
 # 6. Initialize and apply Terraform
 $ terraform init 
 $ terraform plan -var-file="terraform.tfvars"
 $ terraform apply -var-file="terraform.tfvars" -auto-approve
 
+
 # 7. SSH into the head node
 $ ssh -i <your_private_key> ubuntu@<public_ip_of_head>
 
+
 # 8. Monitor worker provisioning via NFS shared logs
 $ tail -f /mnt/mpi_shared/hostfile
+
+
+# 9. Monitor Installation Logs
+$ tail -f /var/log/mpi-setup-$(date +%s).log
+
 ```
 
 ---
