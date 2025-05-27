@@ -98,9 +98,9 @@ $ tail -f /var/log/mpi-setup-$(date +%s).log
 After provisioning:
 
 * `mpirun` will work from the head node using the dynamically built hostfile at `/mnt/mpi_shared/hostfile`.
-* GROMACS or other MPI applications can be installed using the provided `gromacs-install.sh` script.
+* `OSU Benchmarks` can be installed using the provided `osu-benchmark.sh` located here https://github.com/dezma/  OCI-HPC-ARM-EXAMPLES/tree/main/OSU-Benchmarks.
 * All nodes use passwordless SSH and shared `/mnt/mpi_shared`.
-* Sample workloads to run on the cluster can be found in here ->https://github.com/dezma/OCI-HPC-ARM-EXAMPLES.
+* Sample workloads to run on the cluster can be found in here -> https://github.com/dezma/OCI-HPC-ARM-EXAMPLES.
 
 ---
 

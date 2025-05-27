@@ -3,7 +3,7 @@
 # ======================
 output "mpi_head_node_public_ip" {
   value = oci_core_instance.mpi_head_node.public_ip
-
+}
 
 
 
