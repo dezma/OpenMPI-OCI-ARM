@@ -55,8 +55,7 @@ $ nano terraform.tfvars
 $ ssh-keygen -b 2048 -t rsa -f <sshkeyname>
 
 
-# 4. Add the keys to the terraform.tfvars file
-ssh_private_key_path = "~/.ssh/id_rsa"
+# 4. Add the public key to the terraform.tfvars file
 ssh_public_key  = "ssh-rsa AAAAB3NzaC1yc2E....."
 
 
