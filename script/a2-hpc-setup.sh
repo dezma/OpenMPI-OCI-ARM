@@ -121,7 +121,7 @@ if [[ "$ROLE" == "head" ]]; then
 fi
 
 # Wait for shared authorized_keys_all file
-end=$((SECONDS+60))
+end=$((SECONDS+180))
 while [ ! -f /mnt/mpi_shared/authorized_keys_all ] && [ $SECONDS -lt $end ]; do
     sleep 2
 done
